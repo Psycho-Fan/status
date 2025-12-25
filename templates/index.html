@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="60"> <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status | pssyho.site</title>
+    <style>
+        :root {
+            --bg-body: #111111;       /* Deep Black/Gray */
+            --bg-card: #1e1e1e;       /* Card Background */
+            --text-main: #eeeeee;
+            --text-muted: #b9bbbe;
+            
+            /* Status Colors */
+            --color-operational: #3ba55c; /* Green */
+            --color-degraded: #faa61a;    /* Yellow/Orange */
+            --color-outage: #ed4245;      /* Red */
+            --color-blurple: #5865F2;     /* Accent */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .btn-website {
+            background-color: var(--color-blurple);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-website:hover { background-color: #4752c4; }
+
+        .status-banner {
+            padding: 16px 20px;
+            border-radius: 6px;
+            margin-bottom: 40px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        /* Status modifiers */
+        .status-banner.operational { background-color: var(--color-operational); }
+        .status-banner.degraded { background-color: var(--color-degraded); color: #000; }
+        .status-banner.outage { background-color: var(--color-outage); }
+
+        .component-card {
+            background-color: var(--bg-card);
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .component-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .component-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .component-status {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .text-operational { color: var(--color-operational); }
+        .text-degraded { color: var(--color-degraded); }
+        .text-outage { color: var(--color-outage); }
+
+        /* --- 6. UPTIME BARS (The "Green Lines") --- */
+        .uptime-graph {
+            display: flex;
+            gap: 3px;
+            height: 30px;
+            margin-top: 10px;
+        }
+        
+        .bar {
+            flex: 1; /* Auto-width to fill space evenly */
+            background-color: var(--color-operational);
+            border-radius: 2px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .bar:hover { opacity: 1; transform: scaleY(1.1); }
+        
+        /* Stats row below graph */
+        .graph-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-top: 6px;
+            font-family: monospace;
+        }
+
+        /* --- 7. FOOTER --- */
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            color: #555;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <header class="header">
+        <a href="#" class="logo">pssyho.site</a>
+        <a href="https://pssyho.site" class="btn-website">Return to Website</a>
+    </header>
+
+    <div class="status-banner {{ status_class }}">
+        <span>{{ overall_status }}</span>
+        {% if status_class == 'operational' %}
+            <span style="font-size:1.5rem;">✔</span>
+        {% else %}
+            <span style="font-size:1.5rem;">⚠</span>
+        {% endif %}
+    </div>
+
+    {% for service in results %}
+    <div class="component-card">
+        <div class="component-header">
+            <span class="component-name">{{ service.name }}</span>
+            <span class="component-status text-{{ service.status }}">
+                {{ service.status }}
+            </span>
+        </div>
+        
+        <div class="uptime-graph">
+            {% for i in range(45) %}
+                {% if loop.last and service.status != 'operational' %}
+                    <div class="bar" style="background-color: var(--color-{{ service.status }}); opacity: 1;"></div>
+                {% else %}
+                    <div class="bar"></div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <div class="graph-meta">
+            <span>90 days ago</span>
+            <span>Current Latency: {{ service.latency }}ms</span>
+            <span>Today</span>
+        </div>
+    </div>
+    {% endfor %}
+
+    <footer class="footer">
+        <p>System status checks are performed automatically.</p>
+        <p>Last Updated: {{ last_updated }}</p>
+    </footer>
+
+</div>
+
+</body>
+</html>
